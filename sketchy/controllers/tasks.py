@@ -154,6 +154,7 @@ def do_capture(status_code, the_record, base_url, model='capture'):
     files_to_write['sketch'] = capture_name + '.png'
     files_to_write['scrape'] = capture_name + '.txt'
     files_to_write['html'] = capture_name + '.html'
+    files_to_write['har'] = capture_name + '.har'
 
     # If we are not writing to S3, update the capture_status that we are completed.
     if not app.config['USE_S3']:

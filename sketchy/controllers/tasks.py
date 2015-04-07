@@ -145,16 +145,18 @@ def do_capture(status_code, the_record, base_url, model='capture'):
 
     # Update the sketch record with the local URLs for the sketch, scrape, and html captures
     the_record.sketch_url = base_url + '/files/' + capture_name + '.png'
-    the_record.scrape_url = base_url + '/files/' + capture_name + '.txt'
-    the_record.har_url = base_url + '/files/' + capture_name + '.har'
+    the_record.scrape_url = base_url + '/files/' + capture_name + '.txt
     the_record.html_url = base_url + '/files/' + capture_name + '.html'
+    if model != 'static':
+        the_record.har_url = base_url + '/files/' + capture_name + '.har'
 
     # Create a dict that contains what files may need to be written to S3
     files_to_write = defaultdict(list)
     files_to_write['sketch'] = capture_name + '.png'
     files_to_write['scrape'] = capture_name + '.txt'
     files_to_write['html'] = capture_name + '.html'
-    files_to_write['har'] = capture_name + '.har'
+    if model != 'static':
+        files_to_write['har'] = capture_name + '.har'
 
     # If we are not writing to S3, update the capture_status that we are completed.
     if not app.config['USE_S3']:

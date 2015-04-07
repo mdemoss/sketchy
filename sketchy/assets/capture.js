@@ -22,8 +22,109 @@
 // Instead of waiting fixed amount of time before rendering, we give a short
 // time for the page to make additional requests.
 
+
+
 var _ = require('./lodash.js');
 var fs = require('fs');
+
+
+
+
+if (!Date.prototype.toISOString) {
+    Date.prototype.toISOString = function () {
+        function pad(n) { return n < 10 ? '0' + n : n; }
+        function ms(n) { return n < 10 ? '00'+ n : n < 100 ? '0' + n : n }
+        return this.getFullYear() + '-' +
+            pad(this.getMonth() + 1) + '-' +
+            pad(this.getDate()) + 'T' +
+            pad(this.getHours()) + ':' +
+            pad(this.getMinutes()) + ':' +
+            pad(this.getSeconds()) + '.' +
+            ms(this.getMilliseconds()) + 'Z';
+    }
+}
+
+// createHAR and supporting code from https://github.com/ariya/phantomjs/blob/master/examples/netsniff.js
+function createHAR(address, title, startTime, resources, endTime)
+{
+    var entries = [];
+
+    resources.forEach(function (resource) {
+        var request = resource.request,
+            startReply = resource.startReply,
+            endReply = resource.endReply;
+
+        if (!request || !startReply || !endReply) {
+            return;
+        }
+
+        // Exclude Data URI from HAR file because
+        // they aren't included in specification
+        if (request.url.match(/(^data:image\/.*)/i)) {
+            return;
+	}
+
+        entries.push({
+            startedDateTime: request.time.toISOString(),
+            time: endReply.time - request.time,
+            request: {
+                method: request.method,
+                url: request.url,
+                httpVersion: "HTTP/1.1",
+                cookies: [],
+                headers: request.headers,
+                queryString: [],
+                headersSize: -1,
+                bodySize: -1
+            },
+            response: {
+                status: endReply.status,
+                statusText: endReply.statusText,
+                httpVersion: "HTTP/1.1",
+                cookies: [],
+                headers: endReply.headers,
+                redirectURL: "",
+                headersSize: -1,
+                bodySize: startReply.bodySize,
+                content: {
+                    size: startReply.bodySize,
+                    mimeType: endReply.contentType
+                }
+            },
+            cache: {},
+            timings: {
+                blocked: 0,
+                dns: -1,
+                connect: -1,
+                send: 0,
+                wait: startReply.time - request.time,
+                receive: endReply.time - startReply.time,
+                ssl: -1
+            },
+            pageref: address
+        });
+    });
+
+    return {
+        log: {
+            version: '1.2',
+            creator: {
+                name: "PhantomJS",
+                version: phantom.version.major + '.' + phantom.version.minor +
+                    '.' + phantom.version.patch
+            },
+            pages: [{
+                startedDateTime: startTime.toISOString(),
+                id: address,
+                title: title,
+                pageTimings: {
+                    onLoad: endTime - startTime
+                }
+            }],
+            entries: entries
+        }
+    };
+}
 
 var defaultOpts = {
     // How long do we wait for additional requests
@@ -41,16 +142,27 @@ var Page = (function(opts) {
     var ajaxRenderTimeout;
 
     var page = require('webpage').create();
+
+    page.resources = [];
+
     page.viewportSize = {
         width: opts.width,
         height: opts.height
     };
-    
+
     page.settings.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1944.0 Safari/537.36';
     page.customHeaders = {
       // Nullify Accept-Encoding header to disable compression (https://github.com/ariya/phantomjs/issues/10930)
       'Accept-Encoding': ' '
     };
+
+    page.onLoadStarted = function () {
+
+        page.startTime = new Date();
+    };
+
+
+
     page.onInitialized = function() {
         page.customHeaders = {};
     };
@@ -60,6 +172,11 @@ var Page = (function(opts) {
     page.onResourceRequested = function(request) {
         requestCount += 1;
         clearTimeout(ajaxRenderTimeout);
+        page.resources[request.id] = {
+            request: request,
+            startReply: null,
+            endReply: null
+        };
     };
 
     page.onResourceReceived = function(response) {
@@ -69,7 +186,16 @@ var Page = (function(opts) {
                 ajaxRenderTimeout = setTimeout(renderAndExit, opts.ajaxTimeout);
             }
         }
+
+        if (response.stage === 'start') {
+            page.resources[response.id].startReply = response;
+        }
+        if (response.stage === 'end') {
+            page.resources[response.id].endReply = response;
+        }
     };
+
+
 
     var api = {};
 
@@ -81,14 +207,30 @@ var Page = (function(opts) {
                 console.error('Unable to load url:', url);
                 phantom.exit(1);
             } else {
+
                 forceRenderTimeout = setTimeout(renderAndExit, opts.maxTimeout);
             }
         });
     };
 
     function renderAndExit() {
+
+        page.endTime = new Date();
+        page.title = page.evaluate(function () {
+            return document.title;
+        });
+
         page.render(opts.file + '.png');
         fs.write(opts.file + '.html', page.content)
+
+        var har;
+
+        har = createHAR(page.address, page.title, page.startTime, page.resources, page.endTime);
+        //TODO: It seems odd that createHAR would need page while taking all these arguments.
+
+        fs.write(opts.file + '.har', JSON.stringify(har, undefined, 4));
+
+
         phantom.exit();
     }
 

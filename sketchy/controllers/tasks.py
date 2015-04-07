@@ -133,12 +133,12 @@ def do_capture(status_code, the_record, base_url, model='capture'):
         wordz = " ".join((text, tail)).strip('\t')
         if wordz and len(wordz) >= 2 and not re.match("^[ \t\n]*$", wordz):
             output += wordz.encode('utf-8')
-   
+
     # Since the filename format is different for static captures, update the filename
     # This will ensure the URLs are pointing to the correct resources
     if model == 'static':
         capture_name = capture_name.split('.')[0]
-        
+
     # Wite our html text that was parsed into our capture folder
     parsed_text = open(os.path.join(app.config['LOCAL_STORAGE_FOLDER'], capture_name + '.txt'), 'wb')
     parsed_text.write(output)
@@ -146,6 +146,7 @@ def do_capture(status_code, the_record, base_url, model='capture'):
     # Update the sketch record with the local URLs for the sketch, scrape, and html captures
     the_record.sketch_url = base_url + '/files/' + capture_name + '.png'
     the_record.scrape_url = base_url + '/files/' + capture_name + '.txt'
+    the_record.har_url = base_url + '/files/' + capture_name + '.har'
     the_record.html_url = base_url + '/files/' + capture_name + '.html'
 
     # Create a dict that contains what files may need to be written to S3
@@ -202,6 +203,7 @@ def s3_save(files_to_write, the_record):
             the_record.scrape_url = str(url)
         if capture_type == 'html':
             the_record.html_url = str(url)
+        # TODO: Define a capture type for the HAR and include it here. Also make sure it gets into files_to_write.
 
     # Remove local files if we are saving to S3
     os.remove(os.path.join(app.config['LOCAL_STORAGE_FOLDER'], files_to_write['sketch']))
@@ -315,7 +317,7 @@ def celery_capture(self, status_code, base_url, capture_id=0, retries=0, model="
         raise celery_capture.retry(args=[status_code, base_url],
             kwargs = { 'capture_id' :capture_id, 'retries': capture_record.retry + 1, 'model': 'capture'}, exc=err,
             countdown=app.config['COOLDOWN'],
-            max_retries=app.config['MAX_RETRIES'])        
+            max_retries=app.config['MAX_RETRIES'])
     except Exception as err:
         app.logger.error(err)
         capture_record.job_status = 'FAILURE'

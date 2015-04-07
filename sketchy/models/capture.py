@@ -34,7 +34,8 @@ class Capture(db.Model):
     modified_at = db.Column(db.DateTime, onupdate=_get_date, unique=False)
     sketch_url = db.Column(db.String(1500), unique=False)
     scrape_url = db.Column(db.String(1500), unique=False)
-    html_url = db.Column(db.String(1500), unique=False)
+    har_url = db.Column(db.String(1500), unique=False)  # TODO: find occurrences of sketch_url and create equiv. for har_url.
+    html_url = db.Column(db.String(1500), unique=False
     status_only = db.Column(db.Boolean)
     callback = db.Column(db.String(512))
     retry = db.Column(db.Integer)
@@ -49,9 +50,9 @@ class Capture(db.Model):
 
         sketch_dict['id'] = self.id
         sketch_dict['url'] = self.url
-        if self.status_only is not None: 
+        if self.status_only is not None:
             sketch_dict['status_only'] = self.status_only
-        if self.callback is not None: 
+        if self.callback is not None:
             sketch_dict['callback'] = self.callback
         sketch_dict['capture_status'] = self.capture_status
         sketch_dict['job_status'] = self.job_status
@@ -60,6 +61,7 @@ class Capture(db.Model):
         sketch_dict['modified_at'] = str(self.modified_at)
         sketch_dict['sketch_url'] = self.sketch_url
         sketch_dict['scrape_url'] = self.scrape_url
+        sketch_dict['har_url'] = self.har_url
         sketch_dict['html_url'] = self.html_url
         sketch_dict['url_response_code'] = self.url_response_code
         return sketch_dict

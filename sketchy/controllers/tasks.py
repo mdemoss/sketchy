@@ -204,12 +204,15 @@ def s3_save(files_to_write, the_record):
             the_record.scrape_url = str(url)
         if capture_type == 'html':
             the_record.html_url = str(url)
+        if capture_type == 'har':
+            the_record.har_url = str(url)
         # TODO: Define a capture type for the HAR and include it here. Also make sure it gets into files_to_write.
 
     # Remove local files if we are saving to S3
     os.remove(os.path.join(app.config['LOCAL_STORAGE_FOLDER'], files_to_write['sketch']))
     os.remove(os.path.join(app.config['LOCAL_STORAGE_FOLDER'], files_to_write['scrape']))
     os.remove(os.path.join(app.config['LOCAL_STORAGE_FOLDER'], files_to_write['html']))
+    os.remove(os.path.join(app.config['LOCAL_STORAGE_FOLDER'], files_to_write['har']))
 
     # If we don't have a finisher task is complete
     if the_record.callback:

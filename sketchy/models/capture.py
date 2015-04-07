@@ -35,7 +35,7 @@ class Capture(db.Model):
     sketch_url = db.Column(db.String(1500), unique=False)
     scrape_url = db.Column(db.String(1500), unique=False)
     har_url = db.Column(db.String(1500), unique=False)  # TODO: find occurrences of sketch_url and create equiv. for har_url.
-    html_url = db.Column(db.String(1500), unique=False
+    html_url = db.Column(db.String(1500), unique=False)
     status_only = db.Column(db.Boolean)
     callback = db.Column(db.String(512))
     retry = db.Column(db.Integer)

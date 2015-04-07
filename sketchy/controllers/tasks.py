@@ -145,7 +145,7 @@ def do_capture(status_code, the_record, base_url, model='capture'):
 
     # Update the sketch record with the local URLs for the sketch, scrape, and html captures
     the_record.sketch_url = base_url + '/files/' + capture_name + '.png'
-    the_record.scrape_url = base_url + '/files/' + capture_name + '.txt
+    the_record.scrape_url = base_url + '/files/' + capture_name + '.txt'
     the_record.html_url = base_url + '/files/' + capture_name + '.html'
     if model != 'static':
         the_record.har_url = base_url + '/files/' + capture_name + '.har'

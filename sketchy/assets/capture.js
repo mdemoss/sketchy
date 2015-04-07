@@ -28,8 +28,6 @@ var _ = require('./lodash.js');
 var fs = require('fs');
 
 
-
-
 if (!Date.prototype.toISOString) {
     Date.prototype.toISOString = function () {
         function pad(n) { return n < 10 ? '0' + n : n; }
@@ -44,7 +42,8 @@ if (!Date.prototype.toISOString) {
     }
 }
 
-// createHAR and supporting code from https://github.com/ariya/phantomjs/blob/master/examples/netsniff.js
+
+// createHAR and supporting code adapted from https://github.com/ariya/phantomjs/blob/master/examples/netsniff.js
 function createHAR(address, title, startTime, resources, endTime)
 {
     var entries = [];

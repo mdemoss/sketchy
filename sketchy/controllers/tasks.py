@@ -174,7 +174,7 @@ def s3_save(files_to_write, the_record):
     """
     db.session.add(the_record)
     # These are the content-types for the files S3 will be serving up
-    reponse_types = {'sketch': 'image/png', 'scrape': 'text/plain', 'html': 'text/html'}
+    reponse_types = {'sketch': 'image/png', 'scrape': 'text/plain', 'html': 'text/html', 'har': 'application/json'}
 
     # Iterate through each file we need to write to s3
     for capture_type, file_name in files_to_write.items():

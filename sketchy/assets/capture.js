@@ -168,6 +168,11 @@ var Page = (function(opts) {
     // Silence confirmation messages and errors
     page.onConfirm = page.onPrompt = page.onError = noop;
 
+    page.onbeforeunload = function (e) {
+        requestCount += 1; // This may mess up the count, but we don't want to time out after a redir.
+        clearTimeout(ajaxRenderTimeout);
+    };
+
     page.onResourceRequested = function(request) {
         requestCount += 1;
         clearTimeout(ajaxRenderTimeout);

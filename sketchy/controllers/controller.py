@@ -26,10 +26,12 @@ JSONPARSER = reqparse.RequestParser()
 JSONPARSER.add_argument('url', type=str, required=True, help="URL Cannot Be Blank", location='json')
 JSONPARSER.add_argument('status_only', type=bool, required=False, location='json')
 JSONPARSER.add_argument('callback', type=str, required=False, location='json')
+JSONPARSER.add_argument('http_proxy_url', type=str, required=False, location='json')
 
 EAGERPARSER = reqparse.RequestParser()
 EAGERPARSER.add_argument('url', type=str, required=True, help="URL cannot be blank", location='args')
 EAGERPARSER.add_argument('type', type=str, required=True, help="Type of capture must be set: html, sketch, or scrape", location='args')
+EAGERPARSER.add_argument('http_proxy_url', type=str, required=False, location='json')
 
 
 class CaptureView(Resource):
@@ -52,7 +54,7 @@ class CaptureView(Resource):
 
 class CaptureViewLast(Resource):
     """
-    API Provides last capture in database.  
+    API Provides last capture in database.
 
     Methods:
     GET
@@ -70,7 +72,7 @@ class CaptureViewLast(Resource):
 
 class CaptureStatic(Resource):
     """
-    API Provides last capture in database.  
+    API Provides last capture in database.
 
     Methods:
     GET
@@ -117,6 +119,7 @@ class CaptureViewList(Resource):
         capture_record.url = args["url"]
         capture_record.status_only = args["status_only"]
         capture_record.callback = args["callback"]
+        capture_record.http_proxy_url = args["http_proxy_url"]
 
         # Add the capture_record and commit to the DB
         try:
@@ -166,6 +169,7 @@ class Eager(Resource):
         capture_record = Capture()
         capture_record.url = args["url"]
         capture_type = args["type"]
+        capture_record.http_proxy_url = args["http_proxy_url"]
 
         if capture_type not in ['html', 'sketch', 'scrape']:
                 return 'Incorrect capture type specified: html, sketch, or scrape', 406

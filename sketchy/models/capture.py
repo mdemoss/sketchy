@@ -65,6 +65,7 @@ class Capture(db.Model):
         sketch_dict['har_url'] = self.har_url
         sketch_dict['html_url'] = self.html_url
         sketch_dict['url_response_code'] = self.url_response_code
+        sketch_dict['http_proxy_url'] = self.http_proxy_url  # Could SQLAlchemy serialize this automatically?
         return sketch_dict
 
     def __repr__(self):

@@ -48,7 +48,13 @@ def check_url(self, capture_id=0, retries=0):
     try:
         response = ""
         verify_ssl = app.config['SSL_HOST_VALIDATION']
-        response = requests.get(capture_record.url, verify=verify_ssl, allow_redirects=False, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:28.0) Gecko/20100101 Firefox/28.0"})
+        response = requests.get(
+            capture_record.url,
+            verify=verify_ssl,
+            allow_redirects=False,
+            headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:28.0) Gecko/20100101 Firefox/28.0"},
+            proxies={'http':capture_record.http_proxy_url},
+        )
         capture_record.url_response_code = response.status_code
         if capture_record.status_only:
             capture_record.job_status = 'COMPLETED'
@@ -97,6 +103,7 @@ def do_capture(status_code, the_record, base_url, model='capture'):
             app.config['PHANTOMJS'],
             '--ssl-protocol=any',
             '--ignore-ssl-errors=yes',
+            '--proxy=%s' % re.match(r'http://([^:/]+:[0-9]+)', the_record.http_proxy_url).group(1) if the_record.http_proxy_url else '',
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/assets/capture.js',
             the_record.url,
         os.path.join(app.config['LOCAL_STORAGE_FOLDER'], capture_name)]

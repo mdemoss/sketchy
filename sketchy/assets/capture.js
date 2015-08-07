@@ -128,10 +128,10 @@ function createHAR(address, title, startTime, resources, endTime)
 var defaultOpts = {
     // How long do we wait for additional requests
     //after all initial requests have got their response
-    ajaxTimeout: 1000,
+    ajaxTimeout: 8000,
 
     // How long do we wait at max
-    maxTimeout: 8000
+    maxTimeout: 16000
 };
 
 var Page = (function(opts) {

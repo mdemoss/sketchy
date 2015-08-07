@@ -120,7 +120,7 @@ class SketchApiTestCase(Sketch):
     def test_check_url_valid(self):
        from sketchy.models.capture import Capture
        capture_record = Capture()
-       capture_record.url = 'http://majyk.s3-website-us-east-1.amazonaws.com/'
+       capture_record.url = 'http://xkcd.com'
        db.session.add(capture_record)
        db.session.commit()
        db.session.refresh(capture_record)
